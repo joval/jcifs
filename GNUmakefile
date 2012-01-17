@@ -3,7 +3,7 @@ Default: all
 CWD=$(shell pwd)
 
 ifndef JAVA_HOME
-    JAVA_HOME=$(CWD)/../../../tools/jdk160_26
+    JAVA_HOME=../../../tools/jdk160_26
 endif
 
 ifeq (Windows, $(findstring Windows,$(OS)))
@@ -37,7 +37,7 @@ PACKAGEDIRS=$(subst .,/,$(PACKAGES))
 all: jcifs.jar
 
 install: all
-	cp jcifs.jar $(CWD)/../../jOVAL/components/sdk/plugin/remote/$(LIBDIR)/jcifs-1.3.15.jar
+	cp jcifs.jar ../../jOVAL/components/sdk/plugin/remote/$(LIBDIR)/jcifs-1.3.15.jar
 
 jcifs.jar: classes resources
 	$(JAR) cvf $@ -C $(BUILD)/ .
