@@ -44,6 +44,7 @@ jcifs.jar: classes resources
 
 clean:
 	rm -rf $(BUILD)
+	rm jcifs.jar
 
 classes: classdirs $(CLASS_FILES)
 
