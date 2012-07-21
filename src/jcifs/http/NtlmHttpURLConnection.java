@@ -433,7 +433,7 @@ public class NtlmHttpURLConnection extends HttpURLConnection {
     private void doHandshake() throws IOException {
         connect();
         try {
-            int response = parseResponseCode();
+	    int response = parseResponseCode();
             if (response != HTTP_UNAUTHORIZED && response != HTTP_PROXY_AUTH) {
                 return;
             }
@@ -441,28 +441,31 @@ public class NtlmHttpURLConnection extends HttpURLConnection {
             if (type1 == null) return; // no NTLM
             int attempt = 0;
             while (attempt < MAX_REDIRECTS) {
-                connection.setRequestProperty(authProperty, authMethod + ' ' +
-                        Base64.encode(type1.toByteArray()));
+                connection.setRequestProperty(authProperty, authMethod + ' ' + Base64.encode(type1.toByteArray()));
+		connection.setFixedLengthStreamingMode(0);
                 connection.connect(); // send type 1
-                response = parseResponseCode();
-                if (response != HTTP_UNAUTHORIZED &&
-                        response != HTTP_PROXY_AUTH) {
+		response = parseResponseCode();
+                if (response != HTTP_UNAUTHORIZED && response != HTTP_PROXY_AUTH) {
                     return;
                 }
-                Type3Message type3 = (Type3Message)
-                        attemptNegotiation(response);
-                if (type3 == null) return;
-                connection.setRequestProperty(authProperty, authMethod + ' ' +
-                        Base64.encode(type3.toByteArray()));
+                Type3Message type3 = (Type3Message) attemptNegotiation(response);
+                if (type3 == null) {
+		    return;
+		}
+                connection.setRequestProperty(authProperty, authMethod + ' ' + Base64.encode(type3.toByteArray()));
+		if (cachedOutput != null) {
+		    connection.setFixedLengthStreamingMode(cachedOutput.size());
+		} else {
+		    connection.setFixedLengthStreamingMode(0);
+		}
                 connection.connect(); // send type 3
                 if (cachedOutput != null && doOutput) {
                     OutputStream output = connection.getOutputStream();
                     cachedOutput.writeTo(output);
                     output.flush();
                 }
-                response = parseResponseCode();
-                if (response != HTTP_UNAUTHORIZED &&
-                        response != HTTP_PROXY_AUTH) {
+		response = parseResponseCode();
+                if (response != HTTP_UNAUTHORIZED && response != HTTP_PROXY_AUTH) {
                     return;
                 }
                 attempt++;
@@ -522,8 +525,7 @@ public class NtlmHttpURLConnection extends HttpURLConnection {
             }
         }
         if (authMethod == null) return null;
-        NtlmMessage message = (authorization != null) ?
-                new Type2Message(Base64.decode(authorization)) : null;
+        NtlmMessage message = (authorization != null) ? new Type2Message(Base64.decode(authorization)) : null;
         reconnect();
         if (message == null) {
             message = new Type1Message();
